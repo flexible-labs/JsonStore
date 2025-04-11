@@ -6,7 +6,7 @@ A Laravel-friendly, dot-accessible JSON store with automatic saving, file lockin
 
 ## ✨ Features
 
-- Dot notation access (`\$store->get('profile.name')`)
+- Dot notation access (`$store->get('profile.name')`)
 - Auto-saving on destruct or manual control
 - Safe concurrency with file-level locking (`withLock()`)
 - Lightweight TTL caching with `remember()`
@@ -44,7 +44,7 @@ For local development using symlinked packages:
 use FlexibleLabs\JsonStore\JsonStore;
 
 // Create a per-user store with default structure
-\$store = new JsonStore("users/{$user->id}.json", [
+$store = new JsonStore("users/{$user->id}.json", [
     'settings' => [
         'theme' => 'light',
         'notifications' => [
@@ -55,38 +55,38 @@ use FlexibleLabs\JsonStore\JsonStore;
 ]);
 
 // Set a single key
-\$store->set('profile.name', 'Sulieman Shahbari');
+$store->set('profile.name', 'Sulieman Shahbari');
 
 // Set multiple keys at once
-\$store->set([
+$store->set([
     'settings.theme' => 'dark',
     'settings.language' => 'en',
 ]);
 
 // Deeply nested key
-\$store->set('account.preferences.editor.mode', 'vim');
+$store->set('account.preferences.editor.mode', 'vim');
 
 // Conditionally set if not already set
-\$store->set('profile.created_at', now());
+$store->set('profile.created_at', now());
 
 // Insert into array
-\$store->insert('tags', 'laravel');
-\$store->insert('tags', 'open-source');
+$store->insert('tags', 'laravel');
+$store->insert('tags', 'open-source');
 
 // Remove from array
-\$store->deleteFrom('tags', 'open-source');
+$store->deleteFrom('tags', 'open-source');
 
 // Lock file to prevent race conditions
-\$store->withLock(function () use (\$store) {
-    \$count = \$store->get('analytics.visits', 0);
-    \$store->set('analytics.visits', \$count + 1);
+$store->withLock(function () use ($store) {
+    $count = $store->get('analytics.visits', 0);
+    $store->set('analytics.visits', $count + 1);
 });
 
 // TTL-based cache
-\$data = \$store->remember('external.api.cache', 3600, fn () => Http::get('https://api.example.com')->json());
+$data = $store->remember('external.api.cache', 3600, fn () => Http::get('https://api.example.com')->json());
 
 // Save manually or rely on auto-save
-\$store->save();
+$store->save();
 ```
 
 ---
@@ -109,9 +109,9 @@ use FlexibleLabs\JsonStore\JsonStore;
 ## 🔐 Locking Example
 
 ```php
-\$store->withLock(function () use (\$store) {
-    \$votes = \$store->get('votes', 0);
-    \$store->set('votes', \$votes + 1);
+$store->withLock(function () use ($store) {
+    $votes = $store->get('votes', 0);
+    $store->set('votes', $votes + 1);
 });
 ```
 
@@ -120,7 +120,7 @@ use FlexibleLabs\JsonStore\JsonStore;
 ## 🔁 Remember with TTL
 
 ```php
-\$userData = \$store->remember('github.user.123', 300, function () {
+$userData = $store->remember('github.user.123', 300, function () {
     return Http::get('https://api.github.com/users/123')->json();
 });
 ```
