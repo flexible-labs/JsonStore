@@ -111,5 +111,5 @@ $store->deleteFrom('tags', 'vue');
 
 ### 📄 License
 
-MIT © [Your Name]
+MIT © Suleiman
 
