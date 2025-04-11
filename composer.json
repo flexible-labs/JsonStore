@@ -1,0 +1,19 @@
+{
+    "name": "flexible-labs/json-store",
+    "description": "Laravel-friendly JSON store with dot notation, auto-save, file locking, and TTL support.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "FlexibleLabs\\JsonStore\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Suleiman Shahbari",
+            "email": "sulieman@averotech.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
