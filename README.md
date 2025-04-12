@@ -6,7 +6,6 @@
 ![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)
 ![Downloads](https://img.shields.io/packagist/dt/flexible-labs/json-store)
 
----
 
 ## Table of Contents  
 
@@ -28,7 +27,6 @@
 - [License](#license)  
 - [Author](#author)  
 
----
 
 ## Introduction  
 
