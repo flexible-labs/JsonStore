@@ -2,7 +2,6 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Version](https://img.shields.io/packagist/v/flexible-labs/json-store.svg)](https://packagist.org/packages/flexible-labs/json-store)
-[![CI](https://github.com/flexible-labs/json-store/actions/workflows/tests.yml/badge.svg)](https://github.com/flexible-labs/json-store/actions/workflows/tests.yml)
 ![Laravel](https://img.shields.io/badge/Laravel-10%2B-red)
 ![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)
 ![Downloads](https://img.shields.io/packagist/dt/flexible-labs/json-store)
