@@ -1,213 +1,262 @@
-# JsonStore
+# 📦 JsonStore
 
-A Laravel-friendly, dot-accessible JSON storage solution designed to streamline your application's data persistence, handling of user preferences, feature toggles, configuration snapshots, and lightweight caching—all in the familiar "Laravel Way".
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Latest Version](https://img.shields.io/packagist/v/flexible-labs/json-store.svg)](https://packagist.org/packages/flexible-labs/json-store)
+![Laravel](https://img.shields.io/badge/Laravel-10%2B-red)
+![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)
+![Downloads](https://img.shields.io/packagist/dt/flexible-labs/json-store)
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Why Use JsonStore](#why-use-jsonstore)
+- [Features](#features)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Quick Start](#quick-start)
+- [Usage](#usage)
+  - [Creating a Store](#creating-a-store)
+  - [Setting Data](#setting-data)
+  - [Retrieving Data](#retrieving-data)
+  - [Conditional Retrieval or Setting](#conditional-retrieval-or-setting)
+  - [Removing Data](#removing-data)
+  - [Array Helpers](#array-helpers)
+  - [Checking Data Existence](#checking-data-existence)
+  - [Caching with TTL](#caching-with-ttl)
+  - [Concurrency with Locks](#concurrency-with-locks)
+  - [Existence Check](#existence-check)
+- [Practical Route Examples](#practical-route-examples)
+- [Advanced Usage Tips](#advanced-usage-tips)
+- [Comparison with Other Packages](#comparison-with-other-packages)
+- [License](#license)
 
 ---
 
-## Why Use JsonStore?
+## ✨ Introduction
 
-Laravel developers frequently handle dynamic settings, user preferences, and simple data storage requirements. JsonStore makes this task effortless by providing:
-
-- **Simplicity & Readability:** Easy dot notation for nested data.
-- **Automatic Persistence:** Automatically saves changes without explicit calls.
-- **Safe Concurrent Access:** Built-in locking to prevent race conditions.
-- **Lightweight Caching:** Integrated TTL-based caching.
-- **Flexible Storage:** Easily configurable disks and paths.
+**JsonStore** is a Laravel‑friendly package for effortless JSON‑based storage. It lets you store, retrieve, and manage structured data with dot‑notation ease, automatic persistence, and built‑in safety features—_the Laravel way_.
 
 ---
 
-## Package Features
+## 🚀 Why Use JsonStore
 
-- ✅ **Automatic Saving:** Persist data automatically on object destruction.
-- ✅ **Dot Notation Access:** Easily access nested data using dot syntax.
-- ✅ **File Locking:** Prevent conflicts with concurrent requests.
-- ✅ **TTL Caching:** Store and retrieve cached data efficiently.
-- ✅ **Array Helpers:** Convenient methods to manipulate array data.
-- ✅ **Customizable Paths:** Supports various disks and directories out-of-the-box.
+* **Laravel‑first design** – integrates seamlessly with the filesystem and service container.
+* **Dot notation everywhere** – intuitive nested access like `profile.name`.
+* **Automatic saving** – no manual `save()` calls needed (unless you disable auto‑save).
+* **Safe concurrency** – file‑level locking to avoid race conditions.
+* **TTL caching** – lightweight `remember()` helper for transient data.
+* **Flexible storage** – any disk, any base path, per‑tenant or per‑user.
 
 ---
 
-## Quick Start
+## 🛠️ Features
 
-Get started quickly using JsonStore:
+| Feature | Description |
+|---------|-------------|
+| **Dot Notation** | Read & write deeply‑nested JSON keys with ease |
+| **Automatic Saving** | Persists changes on object destruction |
+| **File Locking** | `withLock()` ensures safe concurrent writes |
+| **TTL Caching** | `remember()` caches values for N seconds |
+| **Array Helpers** | `insert()` / `deleteFrom()` for array fields |
+| **Flexible Paths** | `disk()` & `base()` fluent setters |
+
+---
+
+## 🔧 Installation
 
 ```bash
 composer require flexible-labs/json-store
 ```
 
-### Basic Example
+---
 
-Here's a quick and easy example to get you started:
+## ⚙️ Configuration
+
+Publish the config file if you need to customise defaults:
+
+```bash
+php artisan vendor:publish --provider="FlexibleLabs\JsonStore\JsonStoreServiceProvider"
+```
+
+`config/jsonstore.php`:
+
+```php
+return [
+    'disk'      => env('JSONSTORE_DISK', 'local'),
+    'base_path' => env('JSONSTORE_BASE', ''),
+];
+```
+
+---
+
+## ⚡ Quick Start
 
 ```php
 use FlexibleLabs\JsonStore\JsonStore;
 
-Route::get('/settings', function () {
+Route::get('/quick-start', function () {
     $store = JsonStore::make('settings.json');
-
     $store->set('theme', 'dark');
-
-    return $store->get();
+    return $store->get();          // [ 'theme' => 'dark' ]
 });
 ```
 
 ---
 
-## Detailed Documentation (Laravel Style)
+## 📚 Usage
 
-### Creating a JsonStore instance
-
-You can quickly create and load a JSON store with initial data:
+### Creating a Store
 
 ```php
-// Default disk and path
+// Create with default data on the default disk
 $store = JsonStore::make('config.json', ['theme' => 'light']);
 
-// Specifying disk and base path
-$store = JsonStore::make('config.json')->disk('public')->base('configs');
+// Specify disk & base folder
+$store = JsonStore::make('config.json')
+    ->disk('public')
+    ->base('configs');
 ```
 
----
-
-### Setting Data (`set` Method)
-
-Set one or multiple keys easily:
+### Setting Data
 
 ```php
 // Single value
-$store->set('site.title', 'Laravel App');
+$store->set('app.name', 'LaravelApp');
 
-// Multiple values
+// Multiple values at once
 $store->set([
-    'site.name' => 'Laravel',
-    'site.version' => '11.0'
+    'app.version' => '11.0',
+    'app.author'  => 'Flexible Labs',
 ]);
+
+// Deeply‑nested array element
+$store->set('data.colors.0.name', 'red');
 ```
 
----
-
-### Retrieving Data (`get` Method)
-
-Retrieve stored data using dot notation:
+### Retrieving Data
 
 ```php
-// Single value
-$title = $store->get('site.title');
-
-// With default fallback
-$theme = $store->get('theme', 'default');
-
-// Retrieve all data
-$allData = $store->get();
+$title   = $store->get('app.name');
+$version = $store->get('app.version', '1.0'); // default fallback
+$all     = $store->get();                     // entire payload
 ```
 
----
-
-### Checking Data Existence (`has` Method)
-
-Check if a key exists in your store:
-
-```php
-if ($store->has('site.version')) {
-    // Key exists, perform action
-}
-```
-
----
-
-### Removing Data (`forget` Method)
-
-Easily remove keys:
-
-```php
-$store->forget('site.version');
-```
-
----
-
-### Conditional Retrieval or Set (`getOrSet` Method)
-
-Retrieve a key or set it if it doesn't exist:
+### Conditional Retrieval or Setting
 
 ```php
 $theme = $store->getOrSet('theme', 'light');
 ```
 
----
-
-### Caching with TTL (`remember` Method)
-
-Easily cache results temporarily:
+### Removing Data
 
 ```php
-$apiResponse = $store->remember('api.response', 600, function () {
-    return Http::get('https://api.example.com')->json();
+$store->forget('app.author');
+```
+
+### Array Helpers
+
+```php
+// Append to root array
+a$store->insert('new‑item');
+
+// Append to nested array
+$store->insert('users', 'Jane Doe');
+
+// Remove from nested array
+$store->deleteFrom('users', 'Jane Doe');
+```
+
+### Checking Data Existence
+
+```php
+if ($store->has('app.version')) {
+    // key exists
+}
+```
+
+### Caching with TTL
+
+```php
+$response = $store->remember('api.response', 3600, function () {
+    return Http::get('https://api.example.com/data')->json();
 });
 ```
 
----
-
-### Concurrency Safety (`withLock` Method)
-
-Handle concurrent modifications safely:
+### Concurrency with Locks
 
 ```php
 $store->withLock(function () use ($store) {
-    $counter = $store->get('counter', 0);
-    $store->set('counter', $counter + 1);
+    $views = $store->get('views', 0);
+    $store->set('views', $views + 1);
 });
 ```
 
----
-
-### Array Manipulation Helpers
-
-#### Insert into Array (`insert` Method)
-
-Append easily to arrays:
-
-```php
-$store->insert('tags', 'laravel');
-```
-
-#### Delete from Array (`deleteFrom` Method)
-
-Remove values quickly:
-
-```php
-$store->deleteFrom('tags', 'laravel');
-```
-
----
-
-### Check if File Exists (`exists` Method)
-
-Check existence without loading:
+### Existence Check
 
 ```php
 if ($store->exists()) {
     return $store->get();
 }
-
 abort(404);
 ```
 
 ---
 
-## Real-World Example
-
-Here's a practical example using dynamic route handling:
+## 📝 Practical Route Examples
 
 ```php
-Route::get('/articles/{id}', function($id) {
+// 1. Dynamic article route with exists()
+Route::get('/articles/{id}', function ($id) {
     $store = JsonStore::make("{$id}.json")->disk('public')->base('articles');
-
     return $store->exists() ? $store->get() : abort(404);
+});
+
+// 2. Nested colors example
+Route::get('colors', function () {
+    $store = JsonStore::make('colors.json');
+    $store->set('1.name', 'red');
+    $store->set('1.code', '#ff000');
+    $store->getOrSet('2.name', 'green');
+    return $store->get();
+});
+
+// 3. Array append example
+Route::get('array', function () {
+    $store = JsonStore::make('array.json', [1, 2, 3]);
+    $store->insert(4);
+    return $store->get(); // [1,2,3,4]
 });
 ```
 
 ---
 
-## Conclusion
+## 💡 Advanced Usage Tips
 
-JsonStore simplifies handling JSON data with Laravel-friendly methods, automatic persistence, and built-in safety features. It's the perfect choice for maintaining lightweight data stores effortlessly in your Laravel apps.
+* **Real‑time broadcasting** – pair JsonStore updates with Laravel Echo & WebSockets to notify clients when data changes.
+* **Environment isolation** – point each environment (local/stage/prod) to its own disk or base path.
+* **Scheduled snapshots** – use Laravel schedules to back up JsonStore files or rotate archives.
+
+---
+
+## 🔍 Comparison with Other Packages
+
+| Feature                | JsonStore | Laravel Settings | Laravel JSON Settings |
+|------------------------|-----------|------------------|-----------------------|
+| Dot notation           | ✅        | ✅               | ✅                    |
+| Auto persistence       | ✅        | ❌               | ❌                    |
+| File locking           | ✅        | ❌               | ❌                    |
+| TTL caching            | ✅        | ❌               | ❌                    |
+| Flexible paths         | ✅        | ❌               | ✅                    |
+| Native Laravel feel    | ✅        | ✅               | ✅                    |
+
+---
+
+## 📄 License
+
+JsonStore is open‑sourced software licensed under the **MIT license**.
+
+---
+
+## 🙋‍♂️ Author
+
+Maintained by [Suleiman Shahbari](https://github.com/suliemandev)
