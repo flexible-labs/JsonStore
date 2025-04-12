@@ -1,12 +1,25 @@
 # JsonStore
 
+## 🆕 What's New in v1.1.0
+
+- ✅ Lazy `load()` support — automatic loading when calling `get()`, `set()`, etc.
+- ✅ `disk()` and `base()` fluent methods now defer loading until everything is ready
+- ✅ `__destruct()` only saves if `load()` has been called (prevents double-save bugs)
+- ✅ Safer file access with smart defaults and overrides
+
+Update via:
+```bash
+composer update flexible-labs/json-store
+```
+
+
 A Laravel-friendly, dot-accessible JSON store with automatic saving, file locking, TTL caching, and array utilities. Perfect for user settings, feature flags, simple data persistence, and config snapshots — all stored in clean JSON.
 
 ---
 
 ## ✨ Features
 
-- Dot notation access (`$store->get('profile.name')`)
+- Dot notation access (`\$store->get('profile.name')`)
 - Auto-saving on destruct or manual control
 - Safe concurrency with file-level locking (`withLock()`)
 - Lightweight TTL caching with `remember()`
@@ -43,50 +56,15 @@ For local development using symlinked packages:
 ```php
 use FlexibleLabs\JsonStore\JsonStore;
 
-// Create a per-user store with default structure
-$store = new JsonStore("users/{$user->id}.json", [
-    'settings' => [
-        'theme' => 'light',
-        'notifications' => [
-            'email' => true,
-            'sms' => false,
-        ],
-    ]
-]);
+// Minimal example with lazy load
+$store = JsonStore::make('demo.json', ['hello' => 'world']);
+echo $store->get('hello'); // Triggers load() automatically
 
-// Set a single key
-$store->set('profile.name', 'Sulieman Shahbari');
+// Customize disk and subfolder
+JsonStore::make('settings/demo.json', [])->disk('public')->set('theme', 'dark')->save();
 
-// Set multiple keys at once
-$store->set([
-    'settings.theme' => 'dark',
-    'settings.language' => 'en',
-]);
-
-// Deeply nested key
-$store->set('account.preferences.editor.mode', 'vim');
-
-// Conditionally set if not already set
-$store->set('profile.created_at', now());
-
-// Insert into array
-$store->insert('tags', 'laravel');
-$store->insert('tags', 'open-source');
-
-// Remove from array
-$store->deleteFrom('tags', 'open-source');
-
-// Lock file to prevent race conditions
-$store->withLock(function () use ($store) {
-    $count = $store->get('analytics.visits', 0);
-    $store->set('analytics.visits', $count + 1);
-});
-
-// TTL-based cache
-$data = $store->remember('external.api.cache', 3600, fn () => Http::get('https://api.example.com')->json());
-
-// Save manually or rely on auto-save
-$store->save();
+// Fluent style with manual load (optional)
+JsonStore::make("users/" . \$user->id . ".json", [])->disk('public')->base('profiles')->load()->set('role', 'admin');
 ```
 
 ---
@@ -109,9 +87,9 @@ $store->save();
 ## 🔐 Locking Example
 
 ```php
-$store->withLock(function () use ($store) {
-    $votes = $store->get('votes', 0);
-    $store->set('votes', $votes + 1);
+\$store->withLock(function () use (\$store) {
+    \$votes = \$store->get('votes', 0);
+    \$store->set('votes', \$votes + 1);
 });
 ```
 
@@ -120,7 +98,7 @@ $store->withLock(function () use ($store) {
 ## 🔁 Remember with TTL
 
 ```php
-$userData = $store->remember('github.user.123', 300, function () {
+\$userData = \$store->remember('github.user.123', 300, function () {
     return Http::get('https://api.github.com/users/123')->json();
 });
 ```
@@ -193,4 +171,5 @@ $store->save();
 
 ## 📄 License
 
-MIT © Suleiman Shahbari / Flexible Labs
+MIT © Sulieman Shahbari / Flexible Labs
+
