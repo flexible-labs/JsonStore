@@ -15,75 +15,75 @@ class JsonStore
     protected string $disk;
     protected string $base;
     protected bool $loaded = false;
+    protected string $filename;
+    protected object|array $default;
 
-	public function __construct(
-	    string $filename,
-	    object|array $default = [],
-	    ?string $disk = null,
-	    ?string $base = null
-	) {
-	    $this->filename = $filename;
-	    $this->default = $default;
+    public function __construct(
+        string $filename,
+        object|array $default = [],
+        ?string $disk = null,
+        ?string $base = null
+    ) {
+        $this->filename = $filename;
+        $this->default = $default;
 
-	    $this->disk = $disk ?? config('jsonstore.disk', 'local');
-	    $this->base = $base ?? config('jsonstore.base_path', '');
-	}
+        $this->disk = $disk ?? config('jsonstore.disk', 'local');
+        $this->base = $base ?? config('jsonstore.base_path', '');
+    }
 
-	public function __destruct()
-	{
-	    if ($this->autoSave && $this->dirty && $this->loaded) {
-	        $this->save();
-	    }
-	}
+    public function __destruct()
+    {
+        if ($this->autoSave && $this->dirty && $this->loaded) {
+            $this->save();
+        }
+    }
 
-	public static function make(...$args): static
-	{
-	    return new static(...$args);
-	}
+    public static function make(...$args): static
+    {
+        return new static(...$args);
+    }
 
-	public function load(): static
-	{
-	    if ($this->loaded) return $this;
+    public function disk(string $disk): static
+    {
+        $this->disk = $disk;
+        return $this;
+    }
 
-	    $this->path = "{$this->base}/{$this->filename}";
+    public function base(string $base): static
+    {
+        $this->base = $base;
+        return $this;
+    }
 
-	    $defaultArray = is_object($this->default)
-	        ? json_decode(json_encode($this->default), true)
-	        : $this->default;
+    public function load(): static
+    {
+        if ($this->loaded) return $this;
 
-	    if (!Storage::disk($this->disk)->exists($this->path)) {
-	        Storage::disk($this->disk)->put($this->path, json_encode($defaultArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-	        $this->data = $defaultArray;
-	    } else {
-	        $existing = json_decode(Storage::disk($this->disk)->get($this->path), true) ?? [];
-	        $this->data = array_replace_recursive($defaultArray, $existing);
-	    }
+        $this->path = trim("{$this->base}/{$this->filename}", '/');
 
-	    $this->loaded = true;
+        $defaultArray = is_object($this->default)
+            ? json_decode(json_encode($this->default), true)
+            : $this->default;
 
-	    return $this;
-	}
+        if (!Storage::disk($this->disk)->exists($this->path)) {
+            Storage::disk($this->disk)->put($this->path, json_encode($defaultArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            $this->data = $defaultArray;
+        } else {
+            $existing = json_decode(Storage::disk($this->disk)->get($this->path), true) ?? [];
+            $this->data = array_replace_recursive($defaultArray, $existing);
+        }
 
-	public function disk(string $disk): static
-	{
-	    $this->disk = $disk;
-	    return $this->loadIfReady();
-	}
+        $this->loaded = true;
 
-	public function base(string $base): static
-	{
-	    $this->base = $base;
-	    return $this->loadIfReady();
-	}
+        return $this;
+    }
 
-	protected function loadIfReady(): static
-	{
-	    if (! $this->loaded && $this->filename && $this->disk && $this->base) {
-	        $this->load();
-	    }
-
-	    return $this;
-	}
+    protected function ensureLoaded(): void
+    {
+        if (!$this->loaded) {
+            $this->load();
+        }
+    }
 
     public function save(): void
     {
@@ -91,16 +91,9 @@ class JsonStore
         $this->dirty = false;
     }
 
-	protected function ensureLoaded(): void
-	{
-	    if (! $this->loaded) {
-	        $this->load();
-	    }
-	}
-
     public function set(string|array $key, mixed $value = null): void
     {
-    	$this->ensureLoaded();
+        $this->ensureLoaded();
 
         if (is_array($key)) {
             foreach ($key as $k => $v) {
@@ -115,8 +108,8 @@ class JsonStore
 
     public function get(string $key = null, $default = null, bool $asObject = false): mixed
     {
-    	$this->ensureLoaded();
-    	
+        $this->ensureLoaded();
+
         if (is_null($key)) {
             return $asObject
                 ? json_decode(json_encode($this->data))
@@ -128,6 +121,7 @@ class JsonStore
 
     public function forget(string $key): void
     {
+        $this->ensureLoaded();
         Arr::forget($this->data, $key);
         $this->dirty = true;
     }
@@ -140,7 +134,6 @@ class JsonStore
             return $value;
         }
 
-        // If $default is a closure, call it
         $value = $default instanceof \Closure ? $default() : $default;
         $this->set($key, $value);
         return $value;
@@ -158,8 +151,9 @@ class JsonStore
         $this->dirty = true;
     }
 
-    public function remember(string $key, int $ttlSeconds, callable $callback)
+    public function remember(string $key, int $ttlSeconds, callable $callback): mixed
     {
+        $this->ensureLoaded();
         $now = time();
         $cached = $this->get($key);
 
@@ -186,12 +180,6 @@ class JsonStore
     {
         $lockFile = Storage::disk($this->disk)->path($this->path . '.lock');
 
-        // OPTIONAL: ensure lock directory exists
-        // $dir = dirname($lockFile);
-        // if (!is_dir($dir)) {
-        //     mkdir($dir, 0755, true);
-        // }
-
         $fp = fopen($lockFile, 'c+');
 
         if (!$fp) {
@@ -204,7 +192,6 @@ class JsonStore
                 flock($fp, LOCK_UN);
                 fclose($fp);
 
-                // ✅ Delete lock file if requested
                 if ($deleteLockAfter && file_exists($lockFile)) {
                     unlink($lockFile);
                 }
@@ -222,6 +209,8 @@ class JsonStore
 
     public function insert(string $key, $value): void
     {
+        $this->ensureLoaded();
+
         $array = Arr::get($this->data, $key, []);
         if (!is_array($array)) {
             throw new \InvalidArgumentException("Value at [$key] is not an array.");
@@ -232,8 +221,9 @@ class JsonStore
         $this->dirty = true;
     }
 
-    public function delete(string $key, $default = null)
+    public function delete(string $key, $default = null): mixed
     {
+        $this->ensureLoaded();
         $value = Arr::pull($this->data, $key, $default);
         $this->dirty = true;
         return $value;
@@ -241,6 +231,8 @@ class JsonStore
 
     public function deleteFrom(string $key, $valueToRemove): void
     {
+        $this->ensureLoaded();
+
         $array = Arr::get($this->data, $key, []);
         if (!is_array($array)) {
             throw new \InvalidArgumentException("Value at [$key] is not an array.");
@@ -253,6 +245,7 @@ class JsonStore
 
     public function has(string $key): bool
     {
+        $this->ensureLoaded();
         return Arr::has($this->data, $key);
     }
 }
