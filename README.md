@@ -1,14 +1,14 @@
-# 📦 JsonStore  
+# 📦 JsonStore
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)  
-[![Latest Version](https://img.shields.io/packagist/v/flexible-labs/json-store.svg)](https://packagist.org/packages/flexible-labs/json-store)  
-![Laravel](https://img.shields.io/badge/Laravel-10%2B-red)  
-![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)  
-![Downloads](https://img.shields.io/packagist/dt/flexible-labs/json-store)  
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Latest Version](https://img.shields.io/packagist/v/flexible-labs/json-store.svg)](https://packagist.org/packages/flexible-labs/json-store)
+![Laravel](https://img.shields.io/badge/Laravel-10%2B-red)
+![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)
+![Downloads](https://img.shields.io/packagist/dt/flexible-labs/json-store)
 
 ---
 
-## 📑 Table of Contents  
+## Table of Contents  
 
 - [Introduction](#introduction)  
 - [Key Features](#key-features)  
@@ -30,13 +30,13 @@
 
 ---
 
-## ✨ Introduction  
+## Introduction  
 
 **JsonStore** is a Laravel-friendly package that simplifies JSON-based storage. It enables you to store, retrieve, and manage structured data with ease using dot-notation, automatic persistence, caching, and file-locking mechanisms.  
 
 ---
 
-## 🚀 Key Features  
+## Key Features  
 
 - **Dot Notation:** Intuitively access and modify deeply nested JSON keys.  
 - **Automatic Saving:** Changes are persisted without manual `save()` calls.  
@@ -46,7 +46,7 @@
 
 ---
 
-## 🔧 Installation  
+## Installation  
 
 Install the package using Composer:  
 
@@ -56,7 +56,7 @@ composer require flexible-labs/json-store
 
 ---
 
-## ⚙️ Configuration  
+## Configuration  
 
 Publish the configuration file if you need to customize the defaults:  
 
@@ -75,7 +75,7 @@ return [
 
 ---
 
-## ⚡ Quick Start  
+## Quick Start  
 
 Here’s how to quickly get started:  
 
@@ -91,7 +91,7 @@ Route::get('/quick-start', function () {
 
 ---
 
-## 📚 Detailed Usage  
+## Detailed Usage  
 
 ### Creating a Store  
 
@@ -134,7 +134,7 @@ $store->withLock(function () use ($store) {
 
 ---
 
-## 📝 Practical Examples  
+## Practical Examples  
 
 ### Dynamic Routes  
 
@@ -158,7 +158,7 @@ Route::get('colors', function () {
 
 ---
 
-## 🧪 Testing  
+## Testing  
 
 Run the tests to ensure the package works as expected:  
 
@@ -178,7 +178,7 @@ The suite covers all public methods and uses fake filesystems for safety.
 
 ---
 
-## 💡 Advanced Tips  
+## Advanced Tips  
 
 - **Real-Time Updates:** Integrate with Laravel Echo and WebSockets to broadcast changes.  
 - **Environment-Specific Configurations:** Use separate disks or paths for local, staging, and production environments.  
@@ -186,7 +186,7 @@ The suite covers all public methods and uses fake filesystems for safety.
 
 ---
 
-## 🔍 Comparison with Other Tools  
+## Comparison with Other Tools  
 
 | Feature                | JsonStore | Laravel Settings | Laravel JSON Settings |  
 |------------------------|-----------|------------------|-----------------------|  
@@ -199,12 +199,12 @@ The suite covers all public methods and uses fake filesystems for safety.
 
 ---
 
-## 📄 License
+## License  
 
-JsonStore is open-source software licensed under the **MIT license**.
+JsonStore is open-source software licensed under the **MIT license**.  
 
 ---
 
-## 🙋‍♂️ Author
+## Author  
 
-Maintained by [Sulieman Shahbari](https://github.com/suliemanshahbari).
+Maintained by [Sulieman Shahbari](https://github.com/suliemanshahbari).  
