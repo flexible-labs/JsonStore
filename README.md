@@ -207,4 +207,4 @@ JsonStore is open-source software licensed under the **MIT license**.
 
 ## Author  
 
-Maintained by [Sulieman Shahbari](https://github.com/suliemanshahbari).  
+Maintained by [Suleiman Shahbari](https://github.com/suliemandev).
