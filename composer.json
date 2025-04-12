@@ -8,6 +8,14 @@
             "FlexibleLabs\\JsonStore\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "FlexibleLabs\\JsonStore\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
     "authors": [
         {
             "name": "Suleiman Shahbari",
@@ -15,12 +23,15 @@
         }
     ],
     "minimum-stability": "stable",
-    "require": {},
     "extra": {
         "laravel": {
             "providers": [
                 "FlexibleLabs\\JsonStore\\JsonStoreServiceProvider"
             ]
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.1",
+        "orchestra/testbench": "^10.2"
     }
 }

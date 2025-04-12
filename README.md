@@ -2,11 +2,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Version](https://img.shields.io/packagist/v/flexible-labs/json-store.svg)](https://packagist.org/packages/flexible-labs/json-store)
+[![CI](https://github.com/flexible-labs/json-store/actions/workflows/tests.yml/badge.svg)](https://github.com/flexible-labs/json-store/actions/workflows/tests.yml)
 ![Laravel](https://img.shields.io/badge/Laravel-10%2B-red)
 ![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)
 ![Downloads](https://img.shields.io/packagist/dt/flexible-labs/json-store)
 
-## Table of Contents
+## 📑 Table of Contents
 
 - [Introduction](#introduction)
 - [Why Use JsonStore](#why-use-jsonstore)
@@ -26,9 +27,11 @@
   - [Concurrency with Locks](#concurrency-with-locks)
   - [Existence Check](#existence-check)
 - [Practical Route Examples](#practical-route-examples)
+- [Running Tests](#running-tests)
 - [Advanced Usage Tips](#advanced-usage-tips)
 - [Comparison with Other Packages](#comparison-with-other-packages)
 - [License](#license)
+- [Author](#author)
 
 ---
 
@@ -157,7 +160,7 @@ $store->forget('app.author');
 
 ```php
 // Append to root array
-a$store->insert('new‑item');
+$store->insert('new-item');
 
 // Append to nested array
 $store->insert('users', 'Jane Doe');
@@ -230,6 +233,24 @@ Route::get('array', function () {
 
 ---
 
+## 🧪 Running Tests
+
+1. Install dev dependencies:
+
+```bash
+composer install
+```
+
+2. Execute the suite:
+
+```bash
+composer test     # runs vendor/bin/phpunit
+```
+
+The tests (in `tests/JsonStoreTest.php`) cover every public method and fake the filesystem, so nothing touches your real disks.
+
+---
+
 ## 💡 Advanced Usage Tips
 
 * **Real‑time broadcasting** – pair JsonStore updates with Laravel Echo & WebSockets to notify clients when data changes.
@@ -259,4 +280,5 @@ JsonStore is open‑sourced software licensed under the **MIT license**.
 
 ## 🙋‍♂️ Author
 
-Maintained by [Suleiman Shahbari](https://github.com/suliemandev)
+Maintained by [Sulieman Shahbari](https://github.com/suliemanshahbari)
+

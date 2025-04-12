@@ -142,6 +142,7 @@ class JsonStore
 
     public function replace(array $newData): void
     {
+        $this->ensureLoaded();
         $this->data = $newData;
         $this->dirty = true;
     }
