@@ -4,6 +4,7 @@ namespace FlexibleLabs\JsonStore;
 
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Config;
 
 class JsonStore
 {
@@ -11,38 +12,96 @@ class JsonStore
     protected array $data = [];
     protected bool $dirty = false;
     protected bool $autoSave = true;
+    protected string $disk;
+    protected string $base;
+    protected bool $loaded = false;
 
-    public function __construct(string $filename, object|array $default = [])
-    {
-        $this->path = "json/{$filename}";
+	public function __construct(
+	    string $filename,
+	    object|array $default = [],
+	    ?string $disk = null,
+	    ?string $base = null
+	) {
+	    $this->filename = $filename;
+	    $this->default = $default;
 
-        // Convert object to array if needed
-        $defaultArray = is_object($default) ? json_decode(json_encode($default), true) : $default;
+	    $this->disk = $disk ?? config('jsonstore.disk', 'local');
+	    $this->base = $base ?? config('jsonstore.base_path', '');
+	}
 
-        if (!Storage::disk('local')->exists($this->path)) {
-            Storage::disk('local')->put($this->path, json_encode($defaultArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
-            $this->data = $defaultArray;
-        } else {
-            $existing = json_decode(Storage::disk('local')->get($this->path), true) ?? [];
-            $this->data = array_replace_recursive($defaultArray, $existing);
-        }
-    }
+	public function __destruct()
+	{
+	    if ($this->autoSave && $this->dirty && $this->loaded) {
+	        $this->save();
+	    }
+	}
 
-    public function __destruct()
-    {
-        if ($this->autoSave && $this->dirty) {
-            $this->save();
-        }
-    }
+	public static function make(...$args): static
+	{
+	    return new static(...$args);
+	}
+
+	public function load(): static
+	{
+	    if ($this->loaded) return $this;
+
+	    $this->path = "{$this->base}/{$this->filename}";
+
+	    $defaultArray = is_object($this->default)
+	        ? json_decode(json_encode($this->default), true)
+	        : $this->default;
+
+	    if (!Storage::disk($this->disk)->exists($this->path)) {
+	        Storage::disk($this->disk)->put($this->path, json_encode($defaultArray, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+	        $this->data = $defaultArray;
+	    } else {
+	        $existing = json_decode(Storage::disk($this->disk)->get($this->path), true) ?? [];
+	        $this->data = array_replace_recursive($defaultArray, $existing);
+	    }
+
+	    $this->loaded = true;
+
+	    return $this;
+	}
+
+	public function disk(string $disk): static
+	{
+	    $this->disk = $disk;
+	    return $this->loadIfReady();
+	}
+
+	public function base(string $base): static
+	{
+	    $this->base = $base;
+	    return $this->loadIfReady();
+	}
+
+	protected function loadIfReady(): static
+	{
+	    if (! $this->loaded && $this->filename && $this->disk && $this->base) {
+	        $this->load();
+	    }
+
+	    return $this;
+	}
 
     public function save(): void
     {
-        Storage::disk('local')->put($this->path, json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        Storage::disk($this->disk)->put($this->path, json_encode($this->data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         $this->dirty = false;
     }
 
+	protected function ensureLoaded(): void
+	{
+	    if (! $this->loaded) {
+	        $this->load();
+	    }
+	}
+
     public function set(string|array $key, mixed $value = null): void
     {
+    	$this->ensureLoaded();
+
         if (is_array($key)) {
             foreach ($key as $k => $v) {
                 Arr::set($this->data, $k, $v);
@@ -56,6 +115,8 @@ class JsonStore
 
     public function get(string $key = null, $default = null, bool $asObject = false): mixed
     {
+    	$this->ensureLoaded();
+    	
         if (is_null($key)) {
             return $asObject
                 ? json_decode(json_encode($this->data))
@@ -123,7 +184,7 @@ class JsonStore
 
     public function withLock(callable $callback, bool $deleteLockAfter = true): mixed
     {
-        $lockFile = Storage::disk('local')->path($this->path . '.lock');
+        $lockFile = Storage::disk($this->disk)->path($this->path . '.lock');
 
         // OPTIONAL: ensure lock directory exists
         // $dir = dirname($lockFile);
