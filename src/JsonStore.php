@@ -29,6 +29,7 @@ class JsonStore
 
         $this->disk = $disk ?? config('jsonstore.disk', 'local');
         $this->base = $base ?? config('jsonstore.base_path', '');
+        $this->path = trim("{$this->base}/{$this->filename}", '/');
     }
 
     public function __destruct()
@@ -247,5 +248,11 @@ class JsonStore
     {
         $this->ensureLoaded();
         return Arr::has($this->data, $key);
+    }
+
+    public function exists(): bool
+    {
+        $this->path = trim("{$this->base}/{$this->filename}", '/');
+        return Storage::disk($this->disk)->exists($this->path);
     }
 }
