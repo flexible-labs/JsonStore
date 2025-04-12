@@ -1,175 +1,59 @@
 # JsonStore
 
-## 🆕 What's New in v1.1.0
+A **Laravel-friendly, dot-accessible JSON store** designed for simple data persistence, user settings, feature flags, and configuration snapshots. JsonStore offers automatic saving, lazy loading, file locking for safe concurrency, TTL-based caching, and handy array utilities—all using intuitive dot notation.
 
-- ✅ Lazy `load()` support — automatic loading when calling `get()`, `set()`, etc.
-- ✅ `disk()` and `base()` fluent methods now defer loading until everything is ready
-- ✅ `__destruct()` only saves if `load()` has been called (prevents double-save bugs)
-- ✅ Safer file access with smart defaults and overrides
-
-Update via:
-```bash
-composer update flexible-labs/json-store
-```
-
-
-A Laravel-friendly, dot-accessible JSON store with automatic saving, file locking, TTL caching, and array utilities. Perfect for user settings, feature flags, simple data persistence, and config snapshots — all stored in clean JSON.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Latest Version](https://img.shields.io/packagist/v/flexible-labs/json-store.svg)](https://packagist.org/packages/flexible-labs/json-store)
 
 ---
 
-## ✨ Features
+## Table of Contents
 
-- Dot notation access (`\$store->get('profile.name')`)
-- Auto-saving on destruct or manual control
-- Safe concurrency with file-level locking (`withLock()`)
-- Lightweight TTL caching with `remember()`
-- Insert/remove from arrays with helpers
-- Support for object or array responses
-- Fully customizable file paths (e.g., per user or tenant)
+- [Overview](#overview)
+- [Why Use JsonStore?](#why-use-jsonstore)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Basic Example](#basic-example)
+  - [Advanced Usage](#advanced-usage)
+- [API Reference](#api-reference)
+  - [Instance Creation](#instance-creation)
+  - [File & Storage Methods](#file--storage-methods)
+  - [Data Manipulation Methods](#data-manipulation-methods)
+  - [Caching and TTL](#caching-and-ttl)
+  - [Array Utilities](#array-utilities)
+  - [Locking & Concurrency](#locking--concurrency)
+- [Configuration](#configuration)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
 ---
 
-## 📦 Installation
+## Overview
+
+JsonStore is a lightweight solution for managing JSON data in Laravel projects. It integrates directly with Laravel's filesystem and configuration systems to offer a hassle-free experience for:
+
+- **Automatic Data Persistence:** Automatically saves changes to disk, avoiding data loss.
+- **Lazy Loading:** Loads file data only when needed.
+- **Safe Concurrency:** Uses file locking to ensure data integrity during simultaneous accesses.
+- **TTL Caching:** Caches values temporarily with automatic expiration.
+- **Array Manipulation:** Provides simple helper methods for array operations like insertion and deletion.
+
+---
+
+## Why Use JsonStore?
+
+- **Simplicity & Readability:** Utilize dot notation to access nested JSON keys, making your code cleaner and easier to read.
+- **Performance:** Lazy loading combined with auto-saving reduces unnecessary I/O operations.
+- **Data Integrity:** File-level locking prevents race conditions during concurrent writes.
+- **Flexibility:** Easily customize storage disks and base paths, making JsonStore adaptable to various project architectures.
+- **Versatility:** Perfect for user settings, feature flags, configuration snapshots, and caching responses from APIs.
+
+---
+
+## Installation
+
+Install JsonStore using Composer:
 
 ```bash
 composer require flexible-labs/json-store
-```
-
-For local development using symlinked packages:
-
-```json
-"repositories": [
-    {
-        "type": "path",
-        "url": "../json-store",
-        "options": {
-            "symlink": true
-        }
-    }
-]
-```
-
----
-
-## 🚀 Usage Examples
-
-```php
-use FlexibleLabs\JsonStore\JsonStore;
-
-// Minimal example with lazy load
-$store = JsonStore::make('demo.json', ['hello' => 'world']);
-echo $store->get('hello'); // Triggers load() automatically
-
-// Customize disk and subfolder
-JsonStore::make('settings/demo.json', [])->disk('public')->set('theme', 'dark')->save();
-
-// Fluent style with manual load (optional)
-JsonStore::make("users/" . \$user->id . ".json", [])->disk('public')->base('profiles')->load()->set('role', 'admin');
-```
-
----
-
-## 🧪 API Reference
-
-| Method             | Description                                      | Example |
-|--------------------|--------------------------------------------------|---------|
-| `get(key)`        | Get a value or all data                         | `$store->get('profile.name')` |
-| `set(key, value)`| Set one or multiple values                     | `$store->set('profile.age', 30)` |
-| `delete(key)`     | Remove a key                                    | `$store->delete('profile.age')` |
-| `has(key)`        | Check if a key exists                          | `$store->has('profile.name')` |
-| `getOrSet()`        | Retrieve or set a fallback                     | `$store->getOrSet('settings.theme', 'dark')` |
-| `remember()`        | TTL-based cache for a key                      | `$store->remember('cache.key', 60, fn () => 'value')` |
-| `insert()`          | Append a value to an array                    | `$store->insert('tags', 'laravel')` |
-| `deleteFrom()`      | Remove a value from an array                  | `$store->deleteFrom('tags', 'laravel')` |
-| `withLock()`        | Wrap logic in a file lock                     | `$store->withLock(fn () => ...)` |
-| `save()`            | Save manually to disk                         | `$store->save()` |
-
-## 🔐 Locking Example
-
-```php
-\$store->withLock(function () use (\$store) {
-    \$votes = \$store->get('votes', 0);
-    \$store->set('votes', \$votes + 1);
-});
-```
-
----
-
-## 🔁 Remember with TTL
-
-```php
-\$userData = \$store->remember('github.user.123', 300, function () {
-    return Http::get('https://api.github.com/users/123')->json();
-});
-```
-
----
-
-## 📘 Method Examples
-
-### 🔹 get()
-```php
-$value = $store->get('user.email');
-$all = $store->get();
-$object = $store->get(null, null, true); // as object
-```
-
-### 🔹 set()
-```php
-$store->set('profile.name', 'Sulieman');
-$store->set([
-    'settings.theme' => 'dark',
-    'settings.language' => 'en'
-]);
-```
-
-### 🔹 delete()
-```php
-$store->delete('settings.theme');
-```
-
-### 🔹 has()
-```php
-if ($store->has('settings.language')) {
-    // Do something
-}
-```
-
-### 🔹 getOrSet()
-```php
-$theme = $store->getOrSet('settings.theme', 'light');
-```
-
-### 🔹 remember()
-```php
-$data = $store->remember('external.api.cache', 600, function () {
-    return Http::get('https://example.com')->json();
-});
-```
-
-### 🔹 insert()
-```php
-$store->insert('tags', 'laravel');
-```
-
-### 🔹 deleteFrom()
-```php
-$store->deleteFrom('tags', 'laravel');
-```
-
-### 🔹 withLock()
-```php
-$store->withLock(function () use ($store) {
-    $store->set('key', 'safe value');
-});
-```
-
-### 🔹 save()
-```php
-$store->save();
-```
-
-## 📄 License
-
-MIT © Sulieman Shahbari / Flexible Labs
-
