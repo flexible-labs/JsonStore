@@ -208,17 +208,24 @@ class JsonStore
         }
     }
 
-    public function insert(string $key, $value): void
+    public function insert(string|int|null $keyOrValue, mixed $value = null): void
     {
         $this->ensureLoaded();
 
-        $array = Arr::get($this->data, $key, []);
-        if (!is_array($array)) {
-            throw new \InvalidArgumentException("Value at [$key] is not an array.");
+        // If only one argument is passed, append directly to root
+        if (func_num_args() === 1) {
+            $this->data[] = $keyOrValue;
+        } else {
+            $array = Arr::get($this->data, $keyOrValue, []);
+
+            if (!is_array($array)) {
+                throw new \InvalidArgumentException("Value at [$keyOrValue] is not an array.");
+            }
+
+            $array[] = $value;
+            Arr::set($this->data, $keyOrValue, $array);
         }
 
-        $array[] = $value;
-        Arr::set($this->data, $key, $array);
         $this->dirty = true;
     }
 
